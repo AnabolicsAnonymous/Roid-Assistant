@@ -408,11 +408,13 @@ def get_date(level):
     YYYY-MM-DD HH:MM:SS  ALERT  DETAIL
     """
     if level == "info":
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[green]'+'INFO'.center(9, ' ')}"
+    elif level == "info_white":
         return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'INFO'.center(9, ' ')}"
     elif level == "warn":
-        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'WARN'.center(9, ' ')}"
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[yellow]'+'WARN'.center(9, ' ')}"
     else:
-        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'ALERT'.center(9, ' ')}"
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[red]'+'ALERT'.center(9, ' ')}"
 
 def get_confirmation(meta):
     """
@@ -532,13 +534,18 @@ def get_missing(meta):
             cli_ui.info(cli_ui.red if each.split('|')[0].replace('--', '').strip() in ["imdb"] else cli_ui.white, each)
 
 if __name__ == '__main__':
-    pyver = platform.python_version_tuple()
-    if int(pyver[0]) != 3:
-        console.print(f"{get_date('alert')}[bold red]Python2 Detected, please use python3")
-        exit()
-    elif int(pyver[1]) <= 6:
-        console.print(f"{get_date('alert')}[bold red]Python <= 3.6 Detected, please use Python >=3.7")
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(do_the_thing(base_dir))
-    else:
-        asyncio.run(do_the_thing(base_dir))
+    try:
+        pyver = platform.python_version_tuple()
+        if int(pyver[0]) != 3:
+            console.print(f"{get_date('alert')}[bold red]Python2 Detected, please use python3")
+            exit()
+        elif int(pyver[1]) <= 6:
+            console.print(f"{get_date('alert')}[bold red]Python <= 3.6 Detected, please use Python >=3.7")
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(do_the_thing(base_dir))
+        else:
+            asyncio.run(do_the_thing(base_dir))
+    except KeyboardInterrupt:
+        console.print(f"{get_date('alert')}[bold red]Exiting: Keyboard Interrupt")
+    except Exception as err:
+        console.print(f"{get_date('alert')}[bold red]Exiting: {err}")
