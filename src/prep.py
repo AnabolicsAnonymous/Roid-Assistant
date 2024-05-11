@@ -46,6 +46,7 @@ try:
     import cli_ui
     from rich.progress import Progress, TextColumn, BarColumn, TimeRemainingColumn
     import platform
+    from datetime import datetime
 except ModuleNotFoundError:
     console.print(traceback.print_exc())
     console.print('[bold red]Missing Module Found. Please reinstall required dependancies.')
@@ -54,9 +55,20 @@ except ModuleNotFoundError:
 except KeyboardInterrupt:
     exit()
 
-
-
-
+def get_date(level):
+    """
+    YYYY-MM-DD HH:MM:SS  INFO   DETAIL
+    YYYY-MM-DD HH:MM:SS  WARN   DETAIL
+    YYYY-MM-DD HH:MM:SS  ALERT  DETAIL
+    """
+    if level == "info":
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[green]'+'INFO'.center(9, ' ')}"
+    elif level == "info_white":
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'INFO'.center(9, ' ')}"
+    elif level == "warn":
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[yellow]'+'WARN'.center(9, ' ')}"
+    else:
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[red]'+'ALERT'.center(9, ' ')}"
 
 class Prep():
     """
@@ -458,7 +470,7 @@ class Prep():
             try:
                 video = sorted(filelist)[0]       
             except IndexError:
-                console.print("[bold red]No Video files found")
+                console.print(f"{get_date('warn')}[bold red]No Video files found")
                 if mode == 'cli':
                     exit()
         else:
@@ -477,7 +489,7 @@ class Prep():
     """
     def exportInfo(self, video, isdir, folder_id, base_dir, export_text):
         if os.path.exists(f"{base_dir}/tmp/{folder_id}/MEDIAINFO.txt") == False and export_text != False:
-            console.print("[bold yellow]Exporting MediaInfo...")
+            console.print(f"{get_date('warn')}[bold yellow]Exporting MediaInfo...")
             #MediaInfo to text
             if isdir == False:
                 os.chdir(os.path.dirname(video))
@@ -488,7 +500,7 @@ class Prep():
             with open(f"{base_dir}/tmp/{folder_id}/MEDIAINFO_CLEANPATH.txt", 'w', newline="", encoding='utf-8') as export_cleanpath:
                 export_cleanpath.write(media_info.replace(video, os.path.basename(video)))
                 export_cleanpath.close()
-            console.print("[bold green]MediaInfo Exported.")
+            console.print(f"{get_date('info')}[bold green]MediaInfo Exported.")
 
         if os.path.exists(f"{base_dir}/tmp/{folder_id}/MediaInfo.json.txt") == False:
             #MediaInfo to JSON
@@ -626,11 +638,11 @@ class Prep():
                 r = r.json()
                 if r['releases'] != [] and imdb == None:
                     imdb = r['releases'][0].get('imdb', imdb) if r['releases'][0].get('imdb') is not None else imdb
-                console.print(f"[green]SRRDB: Matched to {response['results'][0]['release']}")
+                console.print(f"{get_date('info')}[green]SRRDB: Matched to {response['results'][0]['release']}")
         except Exception:
             video = video
             scene = False
-            console.print("[yellow]SRRDB: No match found, or request has timed out")
+            console.print(f"{get_date('warn')}[yellow]SRRDB: No match found, or request has timed out")
         return video, scene, imdb
 
 
@@ -670,9 +682,9 @@ class Prep():
         i = len(glob.glob(f"{filename}-*.png"))        
         if i >= num_screens:
             i = num_screens
-            console.print('[bold green]Reusing screenshots')
+            console.print(f'{get_date("info")}[bold green]Reusing screenshots')
         else:
-            console.print("[bold yellow]Saving Screens...")
+            console.print(f"{get_date('warn')}[bold yellow]Saving Screens...")
             if use_vs == True:
                 from src.vs import vs_screengn
                 vs_screengn(source=file, encode=None, filter_b_frames=False, num=num_screens, dir=f"{base_dir}/tmp/{folder_id}/")
@@ -684,12 +696,12 @@ class Prep():
                     loglevel = 'quiet'
                     debug = True
                 with Progress(
-                        TextColumn("[bold green]Saving Screens..."),
+                        TextColumn(f"{get_date('info')}[bold green]Saving Screens..."),
                         BarColumn(),
                         "[cyan]{task.completed}/{task.total}",
                         TimeRemainingColumn()
                     ) as progress:
-                    screen_task = progress.add_task("[green]Saving Screens...", total=num_screens + 1)
+                    screen_task = progress.add_task(f"{get_date('info')}[green]Saving Screens...", total=num_screens + 1)
                     ss_times = []
                     for i in range(num_screens + 1):
                         image = f"{base_dir}/tmp/{folder_id}/{filename}-{i}.png"
@@ -712,14 +724,14 @@ class Prep():
                         elif os.path.getsize(Path(image)) <= 10000000 and self.img_host in ["imgbox", 'pixhost']:
                             i += 1
                         elif os.path.getsize(Path(image)) <= 75000:
-                            console.print("[bold yellow]Image is incredibly small, retaking")
+                            console.print(f"{get_date('warn')}[bold yellow]Image is incredibly small, retaking")
                             time.sleep(1)
                         elif self.img_host == "ptpimg":
                             i += 1
                         elif self.img_host == "lensdump":
                             i += 1
                         else:
-                            console.print("[red]Image too large for your image host, retaking")
+                            console.print(f"{get_date('warn')}[red]Image too large for your image host, retaking")
                             time.sleep(1)
                         progress.advance(screen_task)
                 #remove smallest image
@@ -769,7 +781,7 @@ class Prep():
         i = 0        
         if len(glob.glob(f"{meta['base_dir']}/tmp/{meta['uuid']}/{meta['discs'][disc_num]['name']}-*.png")) >= num_screens:
             i = num_screens
-            console.print('[bold green]Reusing screenshots')
+            console.print(f'{get_date("info")}[bold green]Reusing screenshots')
         else:
             if bool(meta.get('ffdebug', False)) == True:
                 loglevel = 'verbose'
@@ -777,12 +789,12 @@ class Prep():
             looped = 0
             retake = False
             with Progress(
-                    TextColumn("[bold green]Saving Screens..."),
+                    TextColumn(f"{get_date('info')}[bold green]Saving Screens..."),
                     BarColumn(),
                     "[cyan]{task.completed}/{task.total}",
                     TimeRemainingColumn()
                 ) as progress:
-                    screen_task = progress.add_task("[green]Saving Screens...", total=num_screens + 1)
+                    screen_task = progress.add_task(f"{get_date('info')}[green]Saving Screens...", total=num_screens + 1)
                     ss_times = []
                     for i in range(num_screens + 1):
                         if n >= len(main_set):
@@ -844,7 +856,7 @@ class Prep():
                                 elif os.path.getsize(Path(image)) <= 10000000 and self.img_host in ["imgbox", 'pixhost']:
                                     i += 1
                                 elif os.path.getsize(Path(image)) <= 75000:
-                                    console.print("[yellow]Image is incredibly small (and is most likely to be a single color), retaking")
+                                    console.print(f"{get_date('warn')}[yellow]Image is incredibly small (and is most likely to be a single color), retaking")
                                     retake = True
                                     time.sleep(1)
                                 elif self.img_host == "ptpimg":
@@ -852,7 +864,7 @@ class Prep():
                                 elif self.img_host == "lensdump":
                                     i += 1
                                 else:
-                                    console.print("[red]Image too large for your image host, retaking")
+                                    console.print(f"{get_date('warn')}[red]Image too large for your image host, retaking")
                                     retake = True
                                     time.sleep(1)
                                 looped = 0
@@ -902,7 +914,7 @@ class Prep():
             i = 0
             if len(glob.glob(f"{filename}-*.png")) >= num_screens:
                 i = num_screens
-                console.print('[bold green]Reusing screenshots')
+                console.print(f'{get_date("info")}[bold green]Reusing screenshots')
             else:
                 loglevel = 'quiet'
                 debug = True
@@ -915,13 +927,13 @@ class Prep():
                 else:
                     retake = False
                     with Progress(
-                        TextColumn("[bold green]Saving Screens..."),
+                        TextColumn(f"{get_date('info')}[bold green]Saving Screens..."),
                         BarColumn(),
                         "[cyan]{task.completed}/{task.total}",
                         TimeRemainingColumn()
                     ) as progress:
                         ss_times = []
-                        screen_task = progress.add_task("[green]Saving Screens...", total=num_screens + 1)
+                        screen_task = progress.add_task(f"{get_date('info')}[green]Saving Screens...", total=num_screens + 1)
                         for i in range(num_screens + 1):
                             image = os.path.abspath(f"{base_dir}/tmp/{folder_id}/{filename}-{i}.png")
                             if not os.path.exists(image) or retake != False:
@@ -943,7 +955,7 @@ class Prep():
     
                                 self.optimize_images(image)
                                 if os.path.getsize(Path(image)) <= 75000:
-                                    console.print("[yellow]Image is incredibly small, retaking")
+                                    console.print(f"{get_date('warn')}[yellow]Image is incredibly small, retaking")
                                     retake = True
                                     time.sleep(1)
                                 if os.path.getsize(Path(image)) <= 31000000 and self.img_host == "imgbb" and retake == False:
@@ -953,12 +965,12 @@ class Prep():
                                 elif self.img_host in ["ptpimg", "lensdump"] and retake == False:
                                     i += 1
                                 elif self.img_host == "freeimage.host":
-                                    console.print("[bold red]Support for freeimage.host has been removed. Please remove from your config")
+                                    console.print(f"{get_date('warn')}[bold red]Support for freeimage.host has been removed. Please remove from your config")
                                     exit()
                                 elif retake == True:
                                     pass
                                 else:
-                                    console.print("[red]Image too large for your image host, retaking")
+                                    console.print(f"{get_date('warn')}[red]Image too large for your image host, retaking")
                                     retake = True
                                     time.sleep(1) 
                             else:
@@ -1023,7 +1035,7 @@ class Prep():
         elif is_disc != None:
             type = "DISC"
         elif "dvdrip" in filename:
-            console.print("[bold red]DVDRip Detected, exiting")
+            console.print(f"{get_date('warn')}[bold red]DVDRip Detected, exiting")
             exit()
         else:
             type = "ENCODE"
@@ -1063,7 +1075,7 @@ class Prep():
             year = imdb_info.get('year')
             if year == None:
                 year = meta['search_year']
-            console.print(f"[yellow]TMDb was unable to find anything with that IMDb, searching TMDb for {title}")
+            console.print(f"{get_date('warn')}[yellow]TMDb was unable to find anything with that IMDb, searching TMDb for {title}")
             meta = await self.get_tmdb_id(title, year, meta, meta['category'], imdb_info.get('original title', imdb_info.get('localized title', meta['uuid'])))
             if meta.get('tmdb') in ('None', '', None, 0, '0'):
                 if meta.get('mode', 'discord') == 'cli':
@@ -1106,7 +1118,7 @@ class Prep():
                     attempted += 1
                     meta = await self.get_tmdb_id(anitopy.parse(guessit(untouched_filename, {"excludes" : ["country", "language"]})['title'])['anime_title'], search_year, meta, meta['category'], untouched_filename, attempted)
                 if meta['tmdb'] in (None, ""):
-                    console.print(f"[red]Unable to find TMDb match for {filename}")
+                    console.print(f"{get_date('warn')}[red]Unable to find TMDb match for {filename}")
                     if meta.get('mode', 'discord') == 'cli':
                         tmdb_id = cli_ui.ask_string("Please enter tmdb id in this format: tv/12345 or movie/12345")
                         parser = Args(config=self.config)
@@ -1127,10 +1139,10 @@ class Prep():
                     meta = await self.get_tmdb_id(title, "", meta, meta['category'])
             except:
                 if meta.get('mode', 'discord') == 'cli':
-                    console.print("[bold red]Unable to find tmdb entry. Exiting.")
+                    console.print(f"{get_date('warn')}[bold red]Unable to find tmdb entry. Exiting.")
                     exit()
                 else:
-                    console.print("[bold red]Unable to find tmdb entry")
+                    console.print(f"{get_date('warn')}[bold red]Unable to find tmdb entry")
                     return meta
         if meta['category'] == "MOVIE":
             movie = tmdb.Movies(meta['tmdb'])
@@ -1486,7 +1498,7 @@ class Prep():
                             if audio_language != meta['original_language'] and audio_language != "en":
                                 if meta['original_language'] not in variants and audio_language not in variants:
                                     audio_language = "und" if audio_language == "" else audio_language
-                                    console.print(f"[bold red]This release has a(n) {audio_language} audio track, and may be considered bloated")
+                                    console.print(f"{get_date('warn')}[bold red]This release has a(n) {audio_language} audio track, and may be considered bloated")
                                     time.sleep(5)
                     if eng and orig == True:
                         dual = "Dual-Audio"
@@ -1975,7 +1987,7 @@ class Prep():
         else: # 16MiB Piece Size
             piece_size = 24
             piece_size_text = "16MiB"
-        console.print(f"[bold yellow]Creating .torrent with a piece size of {piece_size_text}... (No valid --torrenthash was provided to reuse)")
+        console.print(f"{get_date('warn')}[bold yellow]Creating .torrent with a piece size of {piece_size_text}... (No valid --torrenthash was provided to reuse)")
         if meta.get('torrent_creation') != None:
             torrent_creation = meta['torrent_creation']
         else:
@@ -1988,26 +2000,26 @@ class Prep():
             err = subprocess.call(args)
             if err != 0:
                 args[3] = "OMITTED"
-                console.print(f"[bold red]Process execution {args} returned with error code {err}.") 
+                console.print(f"{get_date('warn')}[bold red]Process execution {args} returned with error code {err}.") 
         elif torrent_creation == 'mktorrent':
             args = ['mktorrent', '-a', 'https://fake.tracker', '-p', f'-l {piece_size}', '-o', f"{meta['base_dir']}/tmp/{meta['uuid']}/{output_filename}.torrent", path]
             err = subprocess.call(args)
             if err != 0:
                 args[2] = "OMITTED"
-                console.print(f"[bold red]Process execution {args} returned with error code {err}.")
+                console.print(f"{get_date('warn')}[bold red]Process execution {args} returned with error code {err}.")
         else:
             torrent.piece_size = 2**piece_size
             torrent.piece_size_max = 16777216
             torrent.generate(callback=self.torf_cb, interval=5)
             torrent.write(f"{meta['base_dir']}/tmp/{meta['uuid']}/{output_filename}.torrent", overwrite=True)
             torrent.verify_filesize(path)
-        console.print("[bold green].torrent created", end="\r")
+        console.print(f"{get_date('info')}[bold green].torrent created", end="\r")
         return torrent
 
     
     def torf_cb(self, torrent, filepath, pieces_done, pieces_total):
         # print(f'{pieces_done/pieces_total*100:3.0f} % done')
-        cli_ui.info_progress("Hashing...", pieces_done, pieces_total)
+        cli_ui.info_progress(f"{get_date('info_white')}Hashing...", pieces_done, pieces_total)
 
     def create_random_torrents(self, base_dir, uuid, num, path):
         manual_name = re.sub("[^0-9a-zA-Z\[\]\'\-]+", ".", os.path.basename(path))
@@ -2066,21 +2078,21 @@ class Prep():
         if len(existing_images) < total_screens:
             if img_host == 'imgbox':
                 nest_asyncio.apply()
-                console.print("[green]Uploading Screens to Imgbox...")
+                console.print(f"{get_date('info')}[green]Uploading Screens to Imgbox...")
                 image_list = asyncio.run(self.imgbox_upload(f"{meta['base_dir']}/tmp/{meta['uuid']}", image_glob))
                 if image_list == []:
                     if img_host_num == 0:
                         img_host_num = 1
-                    console.print("[yellow]Imgbox failed, trying next image host")
+                    console.print(f"{get_date('warn')}[yellow]Imgbox failed, trying next image host")
                     image_list, i = self.upload_screens(meta, screens - i , img_host_num + 1, i, total_screens, [], return_dict)        
             else:
                 with Progress(
-                    TextColumn("[bold green]Uploading Screens..."),
+                    TextColumn(f"{get_date('info')}[bold green]Uploading Screens..."),
                     BarColumn(),
                     "[cyan]{task.completed}/{task.total}",
                     TimeRemainingColumn()
                 ) as progress:
-                    upload_task = progress.add_task(f"[green]Uploading Screens to {img_host}...", total = len(image_glob[-screens:]))
+                    upload_task = progress.add_task(f"{get_date('info')}[green]Uploading Screens to {img_host}...", total = len(image_glob[-screens:]))
                     timeout=60
                     for image in image_glob[-screens:]:        
                         if img_host == "imgbb":
@@ -2098,11 +2110,11 @@ class Prep():
                                 web_url = response['data']['url_viewer']
                                 raw_url = response['data']['image']['url']
                             except Exception:
-                                progress.console.print("[yellow]imgbb failed, trying next image host")
+                                progress.console.print(f"{get_date('warn')}[yellow]imgbb failed, trying next image host")
                                 progress.stop()
                                 newhost_list, i = self.upload_screens(meta, screens - i , img_host_num + 1, i, total_screens, [], return_dict)
                         elif img_host == "freeimage.host":
-                            progress.console.print("[red]Support for freeimage.host has been removed. Please remove from your config")
+                            progress.console.print(f"{get_date('warn')}[red]Support for freeimage.host has been removed. Please remove from your config")
                             progress.console.print("continuing in 15 seconds")
                             time.sleep(15)
                             progress.stop()
@@ -2125,7 +2137,7 @@ class Prep():
                                 img_url = response['th_url']
                                 web_url = response['show_url']
                             except Exception:
-                                progress.console.print("[yellow]pixhost failed, trying next image host")
+                                progress.console.print(f"{get_date('warn')}[yellow]pixhost failed, trying next image host")
                                 progress.stop()
                                 newhost_list, i = self.upload_screens(meta, screens - i , img_host_num + 1, i, total_screens, [], return_dict)
                         elif img_host == "ptpimg":
@@ -2147,7 +2159,7 @@ class Prep():
                                 web_url = f"https://ptpimg.me/{ptpimg_code}.{ptpimg_ext}" 
                                 raw_url = f"https://ptpimg.me/{ptpimg_code}.{ptpimg_ext}" 
                             except:
-                                progress.console.print("[yellow]ptpimg failed, trying next image host")
+                                progress.console.print(f"{get_date('warn')}[yellow]ptpimg failed, trying next image host")
                                 progress.stop()
                                 newhost_list, i = self.upload_screens(meta, screens - i, img_host_num + 1, i, total_screens, [], return_dict)
                         elif img_host == "lensdump":
@@ -2167,11 +2179,11 @@ class Prep():
                                 web_url = response['data']['url_viewer']
                                 raw_url = response['data']['image']['url']
                             except Exception:
-                                progress.console.print("[yellow]lensdump failed, trying next image host")
+                                progress.console.print(f"{get_date('warn')}[yellow]lensdump failed, trying next image host")
                                 progress.stop()
                                 newhost_list, i = self.upload_screens(meta, screens - i , img_host_num + 1, i, total_screens, [], return_dict)
                         else:
-                            console.print("[bold red]Please choose a supported image host in your config")
+                            console.print(f"{get_date('warn')}[bold red]Please choose a supported image host in your config")
                             exit()
 
 
@@ -2202,7 +2214,7 @@ class Prep():
         async with pyimgbox.Gallery(thumb_width=350, square_thumbs=False) as gallery:
             async for submission in gallery.add(image_glob):
                 if not submission['success']:
-                    console.print(f"[red]There was an error uploading to imgbox: [yellow]{submission['error']}[/yellow][/red]")
+                    console.print(f"{get_date('warn')}[red]There was an error uploading to imgbox: [yellow]{submission['error']}[/yellow][/red]")
                     return []
                 else:
                     image_dict = {}
@@ -2330,7 +2342,7 @@ class Prep():
         try:    
             name = ' '.join(name.split())
         except:
-            console.print("[bold red]Unable to generate name. Please re-run and correct any of the following args if needed.")
+            console.print(f"{get_date('warn')}[bold red]Unable to generate name. Please re-run and correct any of the following args if needed.")
             console.print(f"--category [yellow]{meta['category']}")
             console.print(f"--type [yellow]{meta['type']}")
             console.print(f"--source [yellow]{meta['source']}")
@@ -2443,7 +2455,7 @@ class Prep():
                     except Exception:
                         episode = "E01"
                         episode_int = "1"
-                        console.print('[bold yellow]There was an error guessing the episode number. Guessing E01. Use [bold green]--episode #[/bold green] to correct if needed')
+                        console.print(f'{get_date("warn")}[bold yellow]There was an error guessing the episode number. Guessing E01. Use [bold green]--episode #[/bold green] to correct if needed')
                         await asyncio.sleep(1.5)
                 else:
                     episode = ""
@@ -2528,8 +2540,8 @@ class Prep():
                         except Exception:
                             season_int = "1"
                             season = "S01"
-                        console.print(f"[bold yellow]{meta['title']} does not exist on thexem, guessing {season}")
-                        console.print(f"[bold yellow]If [green]{season}[/green] is incorrect, use --season to correct")
+                        console.print(f"{get_date('warn')}[bold yellow]{meta['title']} does not exist on thexem, guessing {season}")
+                        console.print(f"{get_date('warn')}[bold yellow]If [green]{season}[/green] is incorrect, use --season to correct")
                         await asyncio.sleep(3)
                 # try:
                 #     version = parsed['release_version']
@@ -2651,7 +2663,7 @@ class Prep():
     def is_anon(self, anon_in):
         anon = self.config['DEFAULT'].get("Anon", "False")
         if anon.lower() == "true":
-            console.print("[bold red]Global ANON has been removed in favor of per-tracker settings. Please update your config accordingly.")
+            console.print(f"{get_date('warn')}[bold red]Global ANON has been removed in favor of per-tracker settings. Please update your config accordingly.")
             time.sleep(10)
         if anon_in == True:
             anon_out = 1
@@ -2805,7 +2817,7 @@ class Prep():
                 if meta.get('rehosted_poster', None) == None:
                     r = requests.get(meta['poster'], stream=True)
                     if r.status_code == 200:
-                        console.print("[bold yellow]Rehosting Poster")
+                        console.print(f"{get_date('warn')}[bold yellow]Rehosting Poster")
                         r.raw.decode_content = True
                         with open(poster_img, 'wb') as f:
                             shutil.copyfileobj(r.raw, f)
@@ -2817,7 +2829,7 @@ class Prep():
                             json.dump(meta, metafile, indent=4)
                             metafile.close()
                     else:
-                        console.print("[bold yellow]Poster could not be retrieved")
+                        console.print(f"{get_date('warn')}[bold yellow]Poster could not be retrieved")
             elif os.path.exists(poster_img) and meta.get('rehosted_poster') != None:
                 generic.write(f"TMDB Poster: {meta.get('rehosted_poster')}\n")
             if len(meta['image_list']) > 0:
@@ -2923,7 +2935,7 @@ class Prep():
                 episode = str(each['episode_number'])
                 break
         else:
-            console.print(f"[yellow]Unable to map the date ([bold yellow]{str(date)}[/bold yellow]) to a Season/Episode number")
+            console.print(f"{get_date('warn')}[yellow]Unable to map the date ([bold yellow]{str(date)}[/bold yellow]) to a Season/Episode number")
         return season, episode
 
 

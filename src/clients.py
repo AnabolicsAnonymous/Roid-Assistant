@@ -23,11 +23,13 @@ def get_date(level):
     YYYY-MM-DD HH:MM:SS  ALERT  DETAIL
     """
     if level == "info":
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[green]'+'INFO'.center(9, ' ')}"
+    elif level == "info_white":
         return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'INFO'.center(9, ' ')}"
     elif level == "warn":
-        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'WARN'.center(9, ' ')}"
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[yellow]'+'WARN'.center(9, ' ')}"
     else:
-        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'ALERT'.center(9, ' ')}"
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[red]'+'ALERT'.center(9, ' ')}"
 
 class Clients():
     """
