@@ -48,6 +48,7 @@ from src.trackers.ULCX import ULCX
 from src.console import console
 from rich.markdown import Markdown
 from rich.style import Style
+from datetime import datetime
 
 cli_ui.setup(color='always', title="L4G's Upload Assistant")
 import traceback
@@ -162,13 +163,13 @@ async def do_the_thing(base_dir):
             }
             meta.update({k: v for k, v in saved_meta.items() if k in overwrite_list and meta.get(k) != v})
 
-        console.print(f"[green]Gathering info for {os.path.basename(path)}")
+        console.print(f"{get_date('info')}[green]Gathering info for {os.path.basename(path)}")
         meta['imghost'] = meta.get('imghost') or config['DEFAULT']['img_host_1']
 
         if not meta['unattended']:
             meta['unattended'] = config['DEFAULT'].get('auto_mode', False)
             if meta['unattended']:
-                console.print("[yellow]Running in Auto Mode")
+                console.print(f"{get_date('warn')}[yellow]Running in Auto Mode")
 
         prep = Prep(screens=meta['screens'], img_host=meta['imghost'], config=config)
         meta = await prep.gather_prep(meta=meta, mode='cli')
@@ -294,10 +295,10 @@ async def do_the_thing(base_dir):
                                 await tracker_class.edit_desc(meta)
                     url = await prep.package(meta)
                     if url == False:
-                        console.print(f"[yellow]Unable to upload prep files, they can be found at `tmp/{meta['uuid']}")
+                        console.print(f"{get_date('warn')}[yellow]Unable to upload prep files, they can be found at `tmp/{meta['uuid']}")
                     else:
-                        console.print(f"[green]{meta['name']}")
-                        console.print(f"[green]Files can be found at: [yellow]{url}[/yellow]")  
+                        console.print(f"{get_date('info')}[green]{meta['name']}")
+                        console.print(f"{get_date('info')}[green]Files can be found at: [yellow]{url}[/yellow]")  
 
             if tracker == "BHD":
                 bhd = BHD(config=config)
@@ -338,9 +339,9 @@ async def do_the_thing(base_dir):
                     thr = THR(config=config)
                     try:
                         with requests.Session() as session:
-                            console.print("[yellow]Logging in to THR")
+                            console.print(f"{get_date('warn')}[yellow]Logging in to THR")
                             session = thr.login(session)
-                            console.print("[yellow]Searching for Dupes")
+                            console.print(f"{get_date('warn')}[yellow]Searching for Dupes")
                             dupes = thr.search_existing(session, meta.get('imdb_id'))
                             dupes = await common.filter_dupes(dupes, meta)
                             meta = dupe_check(dupes, meta)
@@ -364,16 +365,16 @@ async def do_the_thing(base_dir):
                     if check_banned_group("PTP", ptp.banned_groups, meta):
                         continue
                     try:
-                        console.print("[yellow]Searching for Group ID")
+                        console.print(f"{get_date('warn')}[yellow]Searching for Group ID")
                         groupID = await ptp.get_group_by_imdb(meta['imdb_id'])
                         if groupID == None:
-                            console.print("[yellow]No Existing Group found")
+                            console.print(f"{get_date('warn')}[yellow]No Existing Group found")
                             if meta.get('youtube', None) == None or "youtube" not in str(meta.get('youtube', '')):
                                 youtube = cli_ui.ask_string("Unable to find youtube trailer, please link one e.g.(https://www.youtube.com/watch?v=dQw4w9WgXcQ)", default="")
                                 meta['youtube'] = youtube
                             meta['upload'] = True
                         else:
-                            console.print("[yellow]Searching for Existing Releases")
+                            console.print(f"{get_date('warn')}[yellow]Searching for Existing Releases")
                             dupes = await ptp.search_existing(groupID, meta)
                             dupes = await common.filter_dupes(dupes, meta)
                             meta = dupe_check(dupes, meta)
@@ -400,6 +401,18 @@ async def do_the_thing(base_dir):
                     await tracker_class.upload(meta)
                     await client.add_to_client(meta, tracker_class.tracker)            
 
+def get_date(level):
+    """
+    YYYY-MM-DD HH:MM:SS  INFO   DETAIL
+    YYYY-MM-DD HH:MM:SS  WARN   DETAIL
+    YYYY-MM-DD HH:MM:SS  ALERT  DETAIL
+    """
+    if level == "info":
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'INFO'.center(9, ' ')}"
+    elif level == "warn":
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'WARN'.center(9, ' ')}"
+    else:
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'ALERT'.center(9, ' ')}"
 
 def get_confirmation(meta):
     """
@@ -407,7 +420,7 @@ def get_confirmation(meta):
     will skip the confirmation if unattended is passed.
     """
     if meta['debug']:
-        console.print("[bold red]DEBUG: True")
+        console.print(f"{get_date('alert')}[bold red]DEBUG: True")
 
     console.print(f"Prep material saved to {meta['base_dir']}/tmp/{meta['uuid']}")
 
@@ -453,7 +466,7 @@ def dupe_check(dupes, meta):
     will set meta['upload'] to True if there are no dupes or if skip-dupe-check is passed.
     """
     if not dupes:
-        console.print("[green]No dupes found")
+        console.print(f"{get_date('info')}[green]No dupes found")
         meta['upload'] = True
         return meta
 
@@ -487,7 +500,7 @@ def check_banned_group(tracker, banned_group_list, meta):
         if match:
             console.print(f"[bold yellow]{meta['tag'][1:]}[/bold yellow][bold red] was found on [bold yellow]{tracker}'s[/bold yellow] list of banned groups.")
             if isinstance(tag, list):
-                console.print(f"[bold red]NOTE: [bold yellow]{tag[1]}")
+                console.print(f"{get_date('alert')}[bold red]NOTE: [bold yellow]{tag[1]}")
 
             if not cli_ui.ask_yes_no(cli_ui.red, "Upload Anyways?", default=False):
                 return True
@@ -521,10 +534,10 @@ def get_missing(meta):
 if __name__ == '__main__':
     pyver = platform.python_version_tuple()
     if int(pyver[0]) != 3:
-        console.print("[bold red]Python2 Detected, please use python3")
+        console.print(f"{get_date('alert')}[bold red]Python2 Detected, please use python3")
         exit()
     elif int(pyver[1]) <= 6:
-        console.print("[bold red]Python <= 3.6 Detected, please use Python >=3.7")
+        console.print(f"{get_date('alert')}[bold red]Python <= 3.6 Detected, please use Python >=3.7")
         loop = asyncio.get_event_loop()
         loop.run_until_complete(do_the_thing(base_dir))
     else:

@@ -13,10 +13,21 @@ import ssl
 import shutil
 import time
 
-
 from src.console import console 
+from datetime import datetime
 
-
+def get_date(level):
+    """
+    YYYY-MM-DD HH:MM:SS  INFO   DETAIL
+    YYYY-MM-DD HH:MM:SS  WARN   DETAIL
+    YYYY-MM-DD HH:MM:SS  ALERT  DETAIL
+    """
+    if level == "info":
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'INFO'.center(9, ' ')}"
+    elif level == "warn":
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'WARN'.center(9, ' ')}"
+    else:
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'ALERT'.center(9, ' ')}"
 
 class Clients():
     """
@@ -26,12 +37,11 @@ class Clients():
         self.config = config
         pass
     
-
     async def add_to_client(self, meta, tracker):
         torrent_path = f"{meta['base_dir']}/tmp/{meta['uuid']}/[{tracker}]{meta['clean_name']}.torrent"
         if meta.get('no_seed', False) == True:
-            console.print(f"[bold red]--no-seed was passed, so the torrent will not be added to the client")
-            console.print(f"[bold yellow]Add torrent manually to the client")
+            console.print(f"{get_date('alert')}[bold red]--no-seed was passed, so the torrent will not be added to the client")
+            console.print(f"{get_date('warn')}[bold yellow]Add torrent manually to the client")
             return
         if os.path.exists(torrent_path):
             torrent = Torrent.read(torrent_path)
@@ -50,7 +60,7 @@ class Clients():
         
         local_path, remote_path = await self.remote_path_map(meta)
         
-        console.print(f"[bold green]Adding to {torrent_client}")
+        console.print(f"{get_date('info')}[bold green]Adding to {torrent_client}")
         if torrent_client.lower() == "rtorrent":
             self.rtorrent(meta['path'], torrent_path, torrent, meta, local_path, remote_path, client)
         elif torrent_client == "qbit":
@@ -76,10 +86,10 @@ class Clients():
         torrent_storage_dir = client.get('torrent_storage_dir', None)
         torrent_client = client.get('torrent_client', None).lower()
         if torrent_storage_dir == None and torrent_client != "watch":
-            console.print(f'[bold red]Missing torrent_storage_dir for {default_torrent_client}')
+            console.print(f"{get_date('alert')}[bold red]Missing torrent_storage_dir for {default_torrent_client}")
             return None
         elif not os.path.exists(str(torrent_storage_dir)) and torrent_client != "watch":
-            console.print(f"[bold red]Invalid torrent_storage_dir path: [bold yellow]{torrent_storage_dir}")
+            console.print(f"{get_date('alert')}[bold red]Invalid torrent_storage_dir path: [bold yellow]{torrent_storage_dir}")
         torrenthash = None
         if torrent_storage_dir != None and os.path.exists(torrent_storage_dir):
             if meta.get('torrenthash', None) != None:
@@ -93,7 +103,7 @@ class Clients():
             if torrent_client == 'qbit' and torrenthash == None and client.get('enable_search') == True:
                 torrenthash = await self.search_qbit_for_torrent(meta, client)
                 if not torrenthash:
-                    console.print("[bold yellow]No Valid .torrent found")
+                    console.print(f"{get_date('warn')}[bold yellow]No Valid .torrent found")
             if not torrenthash:
                 return None
             torrent_path = f"{torrent_storage_dir}/{torrenthash}.torrent"
@@ -144,43 +154,43 @@ class Clients():
                 if torrent_filepath in actual_filepath:
                     valid = True
         else:
-            console.print(f'[bold yellow]{torrent_path} was not found')
+            console.print(f'{get_date("warn")}[bold yellow]{torrent_path} was not found')
         if valid:
             if os.path.exists(torrent_path):
                 reuse_torrent = Torrent.read(torrent_path)
                 if (reuse_torrent.pieces >= 7000 and reuse_torrent.piece_size < 8388608) or (reuse_torrent.pieces >= 4000 and reuse_torrent.piece_size < 4194304): # Allow up to 7k pieces at 8MiB or 4k pieces at 4MiB or less
-                    err_print = "[bold yellow]Too many pieces exist in current hash. REHASHING"
+                    err_print = f"{get_date('warn')}[bold yellow]Too many pieces exist in current hash. REHASHING"
                     valid = False
                 elif reuse_torrent.piece_size < 32768:
-                    err_print = "[bold yellow]Piece size too small to reuse"
+                    err_print = f"{get_date('warn')}[bold yellow]Piece size too small to reuse"
                     valid = False
                 elif wrong_file == True:
-                    err_print = "[bold red] Provided .torrent has files that were not expected"
+                    err_print = f"{get_date('alert')}[bold red] Provided .torrent has files that were not expected"
                     valid = False
                 else:
-                    err_print = f'[bold green]REUSING .torrent with infohash: [bold yellow]{torrenthash}'
+                    err_print = f'{get_date("info")}[bold green]REUSING .torrent with infohash: [bold yellow]{torrenthash}'
         else:
-            err_print = '[bold yellow]Unwanted Files/Folders Identified'
+            err_print = f'{get_date("warn")}[bold yellow]Unwanted Files/Folders Identified'
         if print_err:
             console.print(err_print)
         return valid, torrent_path
 
 
     async def search_qbit_for_torrent(self, meta, client):
-        console.print("[green]Searching qbittorrent for an existing .torrent")
+        console.print(f"{get_date('info')}[green]Searching qbittorrent for an existing .torrent")
         torrent_storage_dir = client.get('torrent_storage_dir', None)
         if torrent_storage_dir == None and client.get("torrent_client", None) != "watch":
-            console.print(f"[bold red]Missing torrent_storage_dir for {self.config['DEFAULT']['default_torrent_client']}")
+            console.print(f"{get_date('alert')}[bold red]Missing torrent_storage_dir for {self.config['DEFAULT']['default_torrent_client']}")
             return None
 
         try:
             qbt_client = qbittorrentapi.Client(host=client['qbit_url'], port=client['qbit_port'], username=client['qbit_user'], password=client['qbit_pass'], VERIFY_WEBUI_CERTIFICATE=client.get('VERIFY_WEBUI_CERTIFICATE', True))
             qbt_client.auth_log_in()
         except qbittorrentapi.LoginFailed:
-            console.print("[bold red]INCORRECT QBIT LOGIN CREDENTIALS")
+            console.print(f"{get_date('alert')}[bold red]INCORRECT QBIT LOGIN CREDENTIALS")
             return None
         except qbittorrentapi.APIConnectionError:
-            console.print("[bold red]APIConnectionError: INCORRECT HOST/PORT")
+            console.print(f"{get_date('alert')}[bold red]APIConnectionError: INCORRECT HOST/PORT")
             return None
 
         # Remote path map if needed
@@ -206,12 +216,12 @@ class Clients():
                 if torrent_path == meta['filelist'][0] and len(torrent.files) == len(meta['filelist']):
                     valid, torrent_path = await self.is_valid_torrent(meta, f"{torrent_storage_dir}/{torrent.hash}.torrent", torrent.hash, 'qbit', print_err=False)
                     if valid:
-                        console.print(f"[green]Found a matching .torrent with hash: [bold yellow]{torrent.hash}")
+                        console.print(f"{get_date('info')}[green]Found a matching .torrent with hash: [bold yellow]{torrent.hash}")
                         return torrent.hash
             elif meta['path'] == torrent_path:
                 valid, torrent_path = await self.is_valid_torrent(meta, f"{torrent_storage_dir}/{torrent.hash}.torrent", torrent.hash, 'qbit', print_err=False)
                 if valid:
-                    console.print(f"[green]Found a matching .torrent with hash: [bold yellow]{torrent.hash}")
+                    console.print(f"{get_date('info')}[green]Found a matching .torrent with hash: [bold yellow]{torrent.hash}")
                     return torrent.hash
         return None
 
@@ -259,7 +269,7 @@ class Clients():
             path = os.path.dirname(path)
         
         
-        console.print("[bold yellow]Adding and starting torrent")
+        console.print(f"{get_date('warn')}[bold yellow]Adding and starting torrent")
         rtorrent.load.start_verbose('', fr_file, f"d.directory_base.set={path}")
         time.sleep(1)
         # Add labels
@@ -290,11 +300,11 @@ class Clients():
         if not path.endswith(os.sep):
             path = f"{path}/"
         qbt_client = qbittorrentapi.Client(host=client['qbit_url'], port=client['qbit_port'], username=client['qbit_user'], password=client['qbit_pass'], VERIFY_WEBUI_CERTIFICATE=client.get('VERIFY_WEBUI_CERTIFICATE', True))
-        console.print("[bold yellow]Adding and rechecking torrent")
+        console.print(f"{get_date('warn')}[bold yellow]Adding and rechecking torrent")
         try:
             qbt_client.auth_log_in()
         except qbittorrentapi.LoginFailed:
-            console.print("[bold red]INCORRECT QBIT LOGIN CREDENTIALS")
+            console.print(f"{get_date('alert')}[bold red]INCORRECT QBIT LOGIN CREDENTIALS")
             return
         auto_management = False
         am_config = client.get('automatic_management_paths', '')
@@ -343,7 +353,7 @@ class Clients():
             if meta['debug']:
                 console.print(f"[cyan]Path: {path}")
         else:
-            console.print("[bold red]Unable to connect to deluge")
+            console.print(f"{get_date('alert')}[bold red]Unable to connect to deluge")
 
 
 
