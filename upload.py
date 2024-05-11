@@ -248,7 +248,7 @@ async def do_the_thing(base_dir):
                 else:
                     upload_to_tracker = cli_ui.ask_yes_no(f"Upload to {tracker_class.tracker}? {debug}", default=meta['unattended'])
                 if upload_to_tracker:
-                    console.print(f"Uploading to {tracker_class.tracker}")
+                    console.print(f"{get_date('info')}[bold green]Uploading to {tracker_class.tracker}")
                     if check_banned_group(tracker_class.tracker, tracker_class.banned_groups, meta):
                         continue
                     dupes = await tracker_class.search_existing(meta)
