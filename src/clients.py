@@ -333,7 +333,7 @@ class Clients():
             qbt_client.torrents_add_tags(tags=client.get('qbit_tag'), torrent_hashes=torrent.infohash)
         if meta.get('qbit_tag') != None:
             qbt_client.torrents_add_tags(tags=meta.get('qbit_tag'), torrent_hashes=torrent.infohash)
-        console.print(f"Added to: {path}")
+        console.print(f"{get_date('info')}[bold green]Added to: {path}")
         
 
 

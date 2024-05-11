@@ -198,10 +198,15 @@ async def do_the_thing(base_dir):
         if int(meta.get('randomized', 0)) >= 1:
             prep.create_random_torrents(meta['base_dir'], meta['uuid'], meta['randomized'], meta['path'])
     
-        trackers = meta.get('trackers', config['TRACKERS']['default_trackers']).split(',')
-
+        if meta.get('trackers', None) != None:
+            trackers = meta['trackers']
+        else:
+            trackers = config['TRACKERS']['default_trackers']
+        if "," in trackers:
+            trackers = trackers.split(',')
         with open (f"{meta['base_dir']}/tmp/{meta['uuid']}/meta.json", 'w') as f:
             json.dump(meta, f, indent=4)
+            f.close()
 
         confirm = get_confirmation(meta)
         while not confirm:
@@ -424,40 +429,40 @@ def get_confirmation(meta):
     if meta['debug']:
         console.print(f"{get_date('alert')}[bold red]DEBUG: True")
 
-    console.print(f"Prep material saved to {meta['base_dir']}/tmp/{meta['uuid']}")
+    console.print(f"{get_date('info')}[bold green]Prep material saved to {meta['base_dir']}/tmp/{meta['uuid']}")
 
-    cli_ui.info_section(cli_ui.yellow, "Database Info")
-    cli_ui.info(f"Title: {meta['title']} ({meta['year']})")
-    cli_ui.info(f"Overview: {meta['overview']}")
-    cli_ui.info(f"Category: {meta['category']}")
+    cli_ui.info_section(cli_ui.yellow, f"{get_date('info_white')}Database Info")
+    cli_ui.info(f"{get_date('info_white')}Title: {meta['title']} ({meta['year']})")
+    cli_ui.info(f"{get_date('info_white')}Overview: {meta['overview']}")
+    cli_ui.info(f"{get_date('info_white')}Category: {meta['category']}")
 
     if int(meta.get('tmdb', 0)):
-        cli_ui.info(f"TMDB: https://www.themoviedb.org/{meta['category'].lower()}/{meta['tmdb']}")
+        cli_ui.info(f"{get_date('info_white')}TMDB: https://www.themoviedb.org/{meta['category'].lower()}/{meta['tmdb']}")
     if int(meta.get('imdb_id', '0')):
-        cli_ui.info(f"IMDB: https://www.imdb.com/title/tt{meta['imdb_id']}")
+        cli_ui.info(f"{get_date('info_white')}IMDB: https://www.imdb.com/title/tt{meta['imdb_id']}")
     if int(meta.get('tvdb_id', '0')):
-        cli_ui.info(f"TVDB: https://www.thetvdb.com/?id={meta['tvdb_id']}&tab=series")
+        cli_ui.info(f"{get_date('info_white')}TVDB: https://www.thetvdb.com/?id={meta['tvdb_id']}&tab=series")
     if int(meta.get('mal_id', 0)):
-        cli_ui.info(f"MAL : https://myanimelist.net/anime/{meta['mal_id']}")
+        cli_ui.info(f"{get_date('info_white')}MAL : https://myanimelist.net/anime/{meta['mal_id']}")
 
     if int(meta.get('freeleech', '0')):
-        cli_ui.info(f"Freeleech: {meta['freeleech']}")
+        cli_ui.info(f"{get_date('info_white')}Freeleech: {meta['freeleech']}")
     
     tag = f" / {meta['tag'][1:]}" if meta['tag'] else "" 
     res = meta['source'] if meta['is_disc'] == "DVD" else meta['resolution']
-    cli_ui.info(f"{res} / {meta['type']}{tag}")
+    cli_ui.info(f"{get_date('info_white')}{res} / {meta['type']}{tag}")
 
     if meta.get('personalrelease', False):
-        cli_ui.info("Personal Release!")
+        cli_ui.info(f"{get_date('info_white')}Personal Release!")
 
     if not meta.get('unattended', False):
         get_missing(meta)
         ring_the_bell = "\a" if config['DEFAULT'].get("sfx_on_prompt", True) else ""  
         cli_ui.info_section(cli_ui.yellow, f"Is this correct?{ring_the_bell}")
-        cli_ui.info(f"Name: {meta['name']}")
-        confirm = cli_ui.ask_yes_no("Correct?", default=False)
+        cli_ui.info(f"{get_date('info_white')}Name: {meta['name']}")
+        confirm = cli_ui.ask_yes_no(f"{get_date('info_white')}Correct?", default=False)
     else: 
-        cli_ui.info(f"Name: {meta['name']}")
+        cli_ui.info(f"{get_date('info_white')}Name: {meta['name']}")
         confirm = True
 
     return confirm
@@ -473,20 +478,20 @@ def dupe_check(dupes, meta):
         return meta
 
     dupe_text = "\n".join(dupes)
-    cli_ui.info_section(cli_ui.bold, "Are these dupes?")
+    cli_ui.info_section(cli_ui.bold, f"{get_date('info')}[bold green]Are these dupes?")
     cli_ui.info(dupe_text)
 
     skip_dupe_check = meta.get('dupe', False)
     if meta['unattended']:
         upload = skip_dupe_check
-        message = "[yellow]Found potential dupes. --skip-dupe-check was passed. Uploading anyways" if upload else "[red]Found potential dupes. Aborting. If this is not a dupe, or you would like to upload anyways, pass --skip-dupe-check"
+        message = f"{get_date('warn')}[yellow]Found potential dupes. --skip-dupe-check was passed. Uploading anyways" if upload else "[red]Found potential dupes. Aborting. If this is not a dupe, or you would like to upload anyways, pass --skip-dupe-check"
         console.print(message)
     else:
-        upload = cli_ui.ask_yes_no("Upload Anyways?", default=False) if not skip_dupe_check else True
+        upload = cli_ui.ask_yes_no(f"{get_date('info')}[bold green]Upload Anyways?", default=False) if not skip_dupe_check else True
 
     meta['upload'] = upload
     if upload and meta['name'] in dupes:
-        meta['name'] = f"{meta['name']} DUPE?"
+        meta['name'] = f"{get_date('info')}[bold green]{meta['name']} DUPE?"
     return meta
 
 def check_banned_group(tracker, banned_group_list, meta):
@@ -504,7 +509,7 @@ def check_banned_group(tracker, banned_group_list, meta):
             if isinstance(tag, list):
                 console.print(f"{get_date('alert')}[bold red]NOTE: [bold yellow]{tag[1]}")
 
-            if not cli_ui.ask_yes_no(cli_ui.red, "Upload Anyways?", default=False):
+            if not cli_ui.ask_yes_no(cli_ui.red, f"{get_date('info')}[bold red]Upload Anyways?", default=False):
                 return True
     return False
 
