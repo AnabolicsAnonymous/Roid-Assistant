@@ -31,8 +31,8 @@ class ULCX():
         self.source_flag = 'ULCX'
         self.upload_url = 'https://upload.cx/api/torrents/upload'
         self.search_url = 'https://upload.cx/api/torrents/filter'
-        self.signature = f"\n[center][url=https://github.com/L4GSP1KE/Upload-Assistant]Created by L4G's Upload Assistant[/url][/center]"
-        self.banned_groups = ['Tigole', 'x0r', 'Judas', 'SPDVD', 'MeGusta', 'YIFY', 'SWTYBLZ', 'TAoE', 'TSP', 'TSPxL', 'LAMA', '4K4U', 'ION10', 'Will1869', 'TGx', 'Sicario', 'QxR', 'Hi10', 'EMBER', 'FGT', 'AROMA', 'd3g', 'nikt0', 'RARBG']
+        self.signature = f"\n[center][url=https://github.com/AnabolicsAnonymous/Roid-Assistant][img=500]https://i.ibb.co/Nmnq5K6/roid.gif[/img][/url][/center]"
+        self.banned_groups = ["Tigole", "x0r", "Judas", "SPDVD", "MeGusta", "YIFY", "SWTYBLZ", "TAoE", "TSP", "TSPxL", "LAMA", "4K4U", "ION10", "Will1869", "TGx", "Sicario", "QxR", "Hi10", "EMBER", "FGT", "AROMA", "d3g", "nikt0", "Grym", "RARBG", "iVy", "FnP", "NuBz", "NAHOM"]
         pass
     
     async def get_cat_id(self, category_name):
@@ -116,7 +116,7 @@ class ULCX():
             'personal_release' : int(meta.get('personalrelease', False)),
             'internal' : 0,
             'featured' : 0,
-            'free' : 0,
+            'free' : 100,
             'doubleup' : 0,
             'sticky' : 0,
         }
@@ -133,7 +133,7 @@ class ULCX():
             data['season_number'] = meta.get('season_int', '0')
             data['episode_number'] = meta.get('episode_int', '0')
         headers = {
-            'User-Agent': f'Upload Assistant/2.1 ({platform.system()} {platform.release()})'
+            'User-Agent': f'Roid Assistant/0.0.1 ({platform.system()} {platform.release()})'
         }
         params = {
             'api_token' : self.config['TRACKERS'][self.tracker]['api_key'].strip()
