@@ -8,7 +8,22 @@ import platform
 
 from src.trackers.COMMON import COMMON
 from src.console import console
+from datetime import datetime
 
+def get_date(level):
+    """
+    YYYY-MM-DD HH:MM:SS  INFO   DETAIL
+    YYYY-MM-DD HH:MM:SS  WARN   DETAIL
+    YYYY-MM-DD HH:MM:SS  ALERT  DETAIL
+    """
+    if level == "info":
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[green]'+'INFO'.center(9, ' ')}"
+    elif level == "info_white":
+        return f"{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + 'INFO'.center(9, ' ')}"
+    elif level == "warn":
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[yellow]'+'WARN'.center(9, ' ')}"
+    else:
+        return f"[blue]{datetime.today().strftime('%Y-%m-%d-%H:%M:%S') + '[red]'+'ALERT'.center(9, ' ')}"
 
 class ULCX():
     """
@@ -144,7 +159,7 @@ class ULCX():
             try:
                 console.print(response.json())
             except:
-                console.print("It may have uploaded, go check")
+                console.print(f"{get_date('info')}[bold green]It may have uploaded, go check")
                 return 
         else:
             console.print(f"[cyan]Request Data:")
@@ -157,7 +172,7 @@ class ULCX():
 
     async def search_existing(self, meta):
         dupes = []
-        console.print("[yellow]Searching for existing torrents on site...")
+        console.print(f"{get_date('warn')}[yellow]Searching for existing torrents on site...")
         params = {
             'api_token' : self.config['TRACKERS'][self.tracker]['api_key'].strip(),
             'tmdbId' : meta['tmdb'],
@@ -177,7 +192,7 @@ class ULCX():
                 # if difference >= 0.05:
                 dupes.append(result)
         except:
-            console.print('[bold red]Unable to search for existing torrents on site. Either the site is down or your API key is incorrect')
+            console.print(f'{get_date("alert")}[bold red]Unable to search for existing torrents on site. Either the site is down or your API key is incorrect')
             await asyncio.sleep(5)
 
         return dupes
