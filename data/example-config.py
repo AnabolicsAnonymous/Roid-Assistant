@@ -188,6 +188,11 @@ config = {
             "announce_url" : "https://reelflix.xyz/announce/customannounceurl",
             # "anon" : False
         },
+        "LDU" : {
+            "api_key" : "LDU api key",
+            "announce_url" : "https://theldu.net/announce/customannounceurl",
+            # "anon" : False
+        },
         "ULCX" : {
             "api_key" : "upload.cx api key",
             "announce_url" : "https://upload.cx/announce/customannounceurl",
