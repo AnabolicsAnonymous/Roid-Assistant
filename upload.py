@@ -431,38 +431,38 @@ def get_confirmation(meta):
 
     console.print(f"{get_date('info')}[bold green]Prep material saved to {meta['base_dir']}/tmp/{meta['uuid']}")
 
-    cli_ui.info_section(cli_ui.yellow, f"{get_date('info_white')}Database Info")
-    cli_ui.info(f"{get_date('info_white')}Title: {meta['title']} ({meta['year']})")
-    cli_ui.info(f"{get_date('info_white')}Overview: {meta['overview']}")
-    cli_ui.info(f"{get_date('info_white')}Category: {meta['category']}")
+    console.print(f"{get_date('info_white')}Database Info")
+    console.print(f"{get_date('info_white')}Title: {meta['title']} ({meta['year']})")
+    console.print(f"{get_date('info_white')}Overview: {meta['overview']}")
+    console.print(f"{get_date('info_white')}Category: {meta['category']}")
 
     if int(meta.get('tmdb', 0)):
-        cli_ui.info(f"{get_date('info_white')}TMDB: https://www.themoviedb.org/{meta['category'].lower()}/{meta['tmdb']}")
+        console.print(f"{get_date('info_white')}TMDB: https://www.themoviedb.org/{meta['category'].lower()}/{meta['tmdb']}")
     if int(meta.get('imdb_id', '0')):
-        cli_ui.info(f"{get_date('info_white')}IMDB: https://www.imdb.com/title/tt{meta['imdb_id']}")
+        console.print(f"{get_date('info_white')}IMDB: https://www.imdb.com/title/tt{meta['imdb_id']}")
     if int(meta.get('tvdb_id', '0')):
-        cli_ui.info(f"{get_date('info_white')}TVDB: https://www.thetvdb.com/?id={meta['tvdb_id']}&tab=series")
+        console.print(f"{get_date('info_white')}TVDB: https://www.thetvdb.com/?id={meta['tvdb_id']}&tab=series")
     if int(meta.get('mal_id', 0)):
-        cli_ui.info(f"{get_date('info_white')}MAL : https://myanimelist.net/anime/{meta['mal_id']}")
+        console.print(f"{get_date('info_white')}MAL : https://myanimelist.net/anime/{meta['mal_id']}")
 
     if int(meta.get('freeleech', '0')):
-        cli_ui.info(f"{get_date('info_white')}Freeleech: {meta['freeleech']}")
+        console.print(f"{get_date('info_white')}Freeleech: {meta['freeleech']}")
     
     tag = f" / {meta['tag'][1:]}" if meta['tag'] else "" 
     res = meta['source'] if meta['is_disc'] == "DVD" else meta['resolution']
-    cli_ui.info(f"{get_date('info_white')}{res} / {meta['type']}{tag}")
+    console.print(f"{get_date('info_white')}{res} / {meta['type']}{tag}")
 
     if meta.get('personalrelease', False):
-        cli_ui.info(f"{get_date('info_white')}Personal Release!")
+        console.print(f"{get_date('info_white')}Personal Release!")
 
     if not meta.get('unattended', False):
         get_missing(meta)
         ring_the_bell = "\a" if config['DEFAULT'].get("sfx_on_prompt", True) else ""  
-        cli_ui.info_section(cli_ui.yellow, f"Is this correct?{ring_the_bell}")
-        cli_ui.info(f"{get_date('info_white')}Name: {meta['name']}")
+        console.print(f"Is this correct?{ring_the_bell}")
+        console.print(f"{get_date('info_white')}Name: {meta['name']}")
         confirm = cli_ui.ask_yes_no(f"{get_date('info_white')}Correct?", default=False)
     else: 
-        cli_ui.info(f"{get_date('info_white')}Name: {meta['name']}")
+        console.print(f"{get_date('info_white')}Name: {meta['name']}")
         confirm = True
 
     return confirm
@@ -478,8 +478,8 @@ def dupe_check(dupes, meta):
         return meta
 
     dupe_text = "\n".join(dupes)
-    cli_ui.info_section(cli_ui.bold, f"{get_date('info')}[bold green]Are these dupes?")
-    cli_ui.info(dupe_text)
+    console.print(f"{get_date('info')}[bold green]Are these dupes?")
+    console.print(f"{get_date('info_white')}{dupe_text}")
 
     skip_dupe_check = meta.get('dupe', False)
     if meta['unattended']:
