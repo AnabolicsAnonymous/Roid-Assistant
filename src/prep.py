@@ -834,20 +834,26 @@ class Prep():
                                             return 300, n
                             try:
                                 voblength, n = _is_vob_good(n, 0, num_screens)
-                                img_time = random.randint(round(voblength/5) , round(voblength - voblength/5))
-                                ss_times = self.valid_ss_time(ss_times, num_screens+1, voblength)
-                                ff = ffmpeg.input(f"{meta['discs'][disc_num]['path']}/VTS_{main_set[n]}", ss=ss_times[-1])
+
+                                # dividing the timestamp by 2 in case we get the same VOB twice to avoid dupes
+                                base_img_time = random.randint(round(voblength / 5), round(voblength - voblength / 5))
+                                img_time = base_img_time / (2 ** n)
+
+                                ss_times = self.valid_ss_time(ss_times, num_screens + 1, voblength)
+                                ff = ffmpeg.input(f"{meta['discs'][disc_num]['path']}/VTS_{main_set[n]}")
                                 if w_sar != 1 or h_sar != 1:
                                     ff = ff.filter('scale', int(round(width * w_sar)), int(round(height * h_sar)))
+
                                 (
                                     ff
-                                    .output(image, vframes=1, pix_fmt="rgb24")
+                                    .output(image, vframes=1, ss=img_time, pix_fmt="rgb24") # Use img_time here
                                     .overwrite_output()
                                     .global_args('-loglevel', loglevel)
                                     .run(quiet=debug)
                                 )
                             except Exception:
                                 console.print(traceback.format_exc())
+
                             self.optimize_images(image)
                             n += 1
                             try: 
