@@ -1964,13 +1964,13 @@ class Prep():
             include = ["*.mkv", "*.mp4", "*.ts"]
         torrent = Torrent(path,
             trackers = ["https://fake.tracker"],
-            source = "L4G",
+            source = "ROID",
             private = True,
             exclude_globs = exclude or [],
             include_globs = include or [],
             creation_date = datetime.now(),
-            comment = "Created by L4G's Upload Assistant",
-            created_by = "L4G's Upload Assistant")
+            comment = "Created by Roid Assistant",
+            created_by = "Roid Assistant")
         file_size = torrent.size
         if file_size < 268435456: # 256 MiB File / 256 KiB Piece Size
             piece_size = 18
@@ -1999,7 +1999,7 @@ class Prep():
         else:
             torrent_creation = self.config['DEFAULT'].get('torrent_creation', 'torf')
         if torrent_creation == 'torrenttools':
-            args = ['torrenttools', 'create', '-a', 'https://fake.tracker', '--private', 'on', '--piece-size', str(2**piece_size), '--created-by', "L4G's Upload Assistant", '--no-cross-seed','-o', f"{meta['base_dir']}/tmp/{meta['uuid']}/{output_filename}.torrent"]
+            args = ['torrenttools', 'create', '-a', 'https://fake.tracker', '--private', 'on', '--piece-size', str(2**piece_size), '--created-by', "Roid Assistant", '--no-cross-seed','-o', f"{meta['base_dir']}/tmp/{meta['uuid']}/{output_filename}.torrent"]
             if not meta['is_disc']:
                 args.extend(['--include', '^.*\.(mkv|mp4|ts)$'])
             args.append(path)
@@ -2040,8 +2040,8 @@ class Prep():
             base_torrent = Torrent.read(torrentpath)
             base_torrent.creation_date = datetime.now()
             base_torrent.trackers = ['https://fake.tracker']
-            base_torrent.comment = "Created by L4G's Upload Assistant"
-            base_torrent.created_by = "Created by L4G's Upload Assistant"
+            base_torrent.comment = "Created by Roid Assistant"
+            base_torrent.created_by = "Created by Roid Assistant"
             #Remove Un-whitelisted info from torrent
             for each in list(base_torrent.metainfo['info']):
                 if each not in ('files', 'length', 'name', 'piece length', 'pieces', 'private', 'source'):

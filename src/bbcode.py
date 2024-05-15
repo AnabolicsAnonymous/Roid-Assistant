@@ -193,7 +193,7 @@ class BBCODE:
 
         # Remove bot signatures
         desc = desc.replace("[img=35]https://blutopia/favicon.ico[/img] [b]Uploaded Using [url=https://github.com/HDInnovations/UNIT3D]UNIT3D[/url] Auto Uploader[/b] [img=35]https://blutopia/favicon.ico[/img]", '')
-        desc = re.sub("\[center\].*Created by L4G's Upload Assistant.*\[\/center\]", "", desc, flags=re.IGNORECASE)
+        desc = re.sub("\n[center][url=https://github.com/AnabolicsAnonymous/Roid-Assistant][img=500]https://i.ibb.co/Nmnq5K6/roid.gif[/img][/url][/center]", "", desc, flags=re.IGNORECASE)
 
         # Replace spoiler tags
         if spoiler_placeholders != []:

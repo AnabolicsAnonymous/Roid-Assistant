@@ -52,7 +52,7 @@ from rich.markdown import Markdown
 from rich.style import Style
 from datetime import datetime
 
-cli_ui.setup(color='always', title="L4G's Upload Assistant")
+cli_ui.setup(color='always', title="Roid Assistant")
 import traceback
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
