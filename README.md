@@ -27,7 +27,7 @@ A drop-in fork of L4G's Upload Assistant
 
 - Checks for existing releases already on site
 
-- Uploads to PTP/BLU/BHD/Aither/THR/STC/R4E(limited)/STT/HP/ACM/LCD/LST/NBL/ANT/FL/HUNO/RF/SN/ULCX
+- Uploads to PTP/BLU/BHD/Aither/THR/STC/R4E(limited)/STT/HP/ACM/LCD/LST/NBL/ANT/FL/HUNO/RF/SN/LDU/ULCX
 
 - Adds to your client with fast resume, seeding instantly (rtorrent/qbittorrent/deluge/watch folder)
 
@@ -51,7 +51,7 @@ A drop-in fork of L4G's Upload Assistant
 
 - On linux systems, get it from your favorite package manager
 
-- Clone the repo to your system `git clone https://github.com/ULCX/Upload-Assistant.git`
+- Clone the repo to your system `git clone https://github.com/AnabolicsAnonymous/Roid-Assistant`
 
 - Copy and Rename `data/example-config.py` to `data/config.py`
 
@@ -73,7 +73,7 @@ Feel free to contact me if you need help, I'm not that hard to find.
 
 ## **Updating:**
 
-- To update first navigate into the Upload-Assistant directory: `cd Upload-Assistant`
+- To update first navigate into the Roid-Assistant directory: `cd Roid-Assistant`
 
 - Run a `git pull` to grab latest updates
 
